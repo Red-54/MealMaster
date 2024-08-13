@@ -36,16 +36,6 @@ def app():
         password = st.text_input('Password',type="password")
         username = st.text_input('User Name')
 
-        """
-         preferences = st.multiselect(
-            "What are your Dietary Preferences?",pf.cuisine+pf.diet+pf.dairy+pf.grains+pf.protein+pf.flavours
-        )
-        #allegries = st.multiselect(
-            "Do you have any allegries?",
-            pf.allegries
-        )
-
-        """
         perfer = st.multiselect(
             "What are your Dietary Preferences?",pf.cuisine+pf.diet+pf.dairy+pf.grains+pf.protein+pf.flavours
         )
