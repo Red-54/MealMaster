@@ -36,12 +36,6 @@ def app():
         password = st.text_input('Password',type="password")
         username = st.text_input('User Name')
 
-        perfer = st.multiselect(
-            "What are your Dietary Preferences?",pf.cuisine+pf.diet+pf.dairy+pf.grains+pf.protein+pf.flavours
-        )
-        allegries = st.multiselect(
-            "Do you have any Allegries?",pf.allegries
-        )
         if st.button("Create My Account"):
             user = auth.create_user(email=email,password=password,uid=username)
 
