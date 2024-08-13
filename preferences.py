@@ -12,4 +12,19 @@ dairy = ["Milk", "Yogurt", "Cheese", "Butter", "Almond Milk", "Soy Milk", "Oat M
 
 flavours = ["Spicy", "Savory", "Sweet", "Tangy", "Umami", "Smoky"]
 
-
+allegries = [
+  "Peanuts", 
+  "Tree Nuts", 
+  "Soy", 
+  "Wheat", 
+  "Dairy", 
+  "Eggs", 
+  "Fish", 
+  "Shellfish", 
+  "Sesame",
+  "Mustard", 
+  "Lupin", 
+  "Mollusks", 
+  "Celery", 
+  "Sulfites"
+]
