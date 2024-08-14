@@ -2,7 +2,8 @@ from enum import auto
 import firebase_admin
 import streamlit as st
 import preferences as pf
-
+from sqlalchemy import text
+import pandas as pd
 from firebase_admin import credentials
 from firebase_admin import auth
 
@@ -25,17 +26,21 @@ def app():
 
 
     def f():
-        try:
-            user = auth.get_user_by_email(email)
-            st.write("Login Successful!")
+        
+        #user = auth.get_user_by_email(email)
+        conn = st.connection('meals_db', type='sql')
+        count = conn.query(str(f"""select count(*) from UserProfile where email = "{email}" and password = "{password}" """))
+        if count.iloc[0,0]:
 
-            st.session_state.username = user.uid
-            st.session_state.email = user.email
+            st.write("Login Successful!")
+            username = conn.query(str(f"""select username from UserProfile where email = "{email}" """))
+
+            st.session_state.username = username.iloc[0,0]
+            st.session_state.email = email
 
             st.session_state.signedout = True
             st.session_state.signout = True
-
-        except:
+        else:
             st.warning("Login Failed!")
     
     def t():
@@ -67,8 +72,13 @@ def app():
             username = st.text_input('User Name')
 
             if st.button("Create My Account"):
-                user = auth.create_user(email=email,password=password,uid=username)
-
+                #user = auth.create_user(email=email,password=password,uid=username)
+                conn = st.connection('meals_db', type='sql')
+                count = conn.query(str(f"""select count(*) from UserProfile where email = "{email}" and password = "{password}" """))
+                if count.iloc[0,0]:
+                    pass 
+                else:
+                    conn.execute(str(f"""insert into UserProfile (username,email,password) values ("{username}","{email}","{password}")"""))
                 st.success("Account Created Successfully")
                 st.balloons()
 
