@@ -1,6 +1,6 @@
 import streamlit as st
 import streamlit_option_menu as option_menu
-
+from sqlalchemy import text
 import account, suggestions, about, customize
 
 st.set_page_config(
@@ -46,6 +46,13 @@ class MultiApp:
         if app == "About":
             about.app()
     
+    conn = st.connection("meals_db",type="sql")
+    with conn.session as s:
+        
+        s.execute(text("create table if not exists UserProfile (username TEXT NOT NULL, email TEXT NOT NULL,password TEXT NOT NULL,preferences TEXT,allergies TEXT,history TEXT);"))
+        s.commit()
+        s.close()
+    st.session_state.suggest = False
     run()
 
 
