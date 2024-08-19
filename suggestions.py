@@ -77,6 +77,14 @@ def get_recipe_title(response):
 
 
 def app():
+    st.session_state.preferences = ''
+    st.session_state.allergies = ''
+    st.session_state.response = ''
+    st.session_state.nutrient_names = []
+    st.session_state.nutrient_values = []
+    if "show" not in st.session_state:
+        st.session_state.show = False
+    st.session_state.username = ''
     username = st.session_state.username
     st.header("Suggestions")
     if st.session_state.username == '':
