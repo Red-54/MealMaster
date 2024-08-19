@@ -9,6 +9,7 @@ st.set_page_config(
 )
 st.session_state.nutrient_names = []
 st.session_state.nutrient_values = []
+st.session_state.show = False
 class MultiApp:
 
 
