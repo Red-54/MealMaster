@@ -9,9 +9,6 @@ from sqlalchemy import text,create_engine
 import tempfile
 import plotly.graph_objects as go
 import json
-st.session_state.preferences = ''
-st.session_state.allergies = ''
-st.session_state.response = ''
 engine = create_engine(
     "sqlite:///meals_db",
     pool_size = 5,
@@ -21,6 +18,14 @@ engine = create_engine(
 )
 
 genai.configure(api_key= os.getenv("GOOGLE_API_KEY"))
+st.session_state.preferences = ''
+st.session_state.allergies = ''
+st.session_state.response = ''
+st.session_state.nutrient_names = []
+st.session_state.nutrient_values = []
+if "show" not in st.session_state:
+    st.session_state.show = False
+
 
 def get_gemini_response(prompt):
     try:
@@ -71,23 +76,15 @@ def get_recipe_title(response):
     except:
         get_recipe_title(response)
 
-@st.cache_data 
-def update_history(response,username):
-    updated_history = get_recipe_title(response) + ", " + st.session_state.history
-
-    with engine.connect() as conn:
-        conn.execute(text(f'''UPDATE UserProfile SET history = "Beef Tacos, " WHERE username = "Red";'''))
-        conn.commit()
-
 
 def app():
+    username = st.session_state.username
     st.header("Suggestions")
     if st.session_state.username == '':
         st.warning("You must Login First!")
         pass
     else:
         response = ''
-        username = st.session_state.username
         fig = go.Figure(data=[go.Bar(x=[],y=[])])
 
         with engine.connect() as conn:
@@ -134,13 +131,21 @@ def app():
             print(prefer)
             response = get_gemini_response(prefer)
             st.session_state.response = response
+            st.session_state.show = True
             nutrient = get_nutrients(response)
-            nutrient_names, nutrient_values = get_key_values(nutrient)         
-            fig = go.Figure(data=[go.Bar(x=nutrient_names,y=nutrient_values)])
+            st.session_state.nutrient_names, st.session_state.nutrient_values = get_key_values(nutrient)         
+    fig = go.Figure(data=[go.Bar(x=st.session_state.nutrient_names,y=st.session_state.nutrient_values)])
 
-    if st.session_state.response is not None:
+    if st.session_state.show:
         st.markdown(st.session_state.response)
-        st.plotly_chart(fig,use_container_width=True)
-        st.button(":heart:",on_click=update_history,args=[st.session_state.response,username])
+        if st.session_state.nutrient_names or st.session_state.nutrient_values:
+            st.plotly_chart(fig,use_container_width=True)
+        else:
+            pass
+        if st.button(":heart:"):   
+            updated_history = str(get_recipe_title(st.session_state.response)) + ", " + st.session_state.history
+            with engine.connect() as conn:
+                conn.execute(text(f'''UPDATE UserProfile SET history = "{updated_history}" WHERE username = "{username}";'''))
+                conn.commit()
     else:
         pass
