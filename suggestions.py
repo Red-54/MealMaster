@@ -138,7 +138,7 @@ def app():
 
     if st.session_state.show:
         st.markdown(st.session_state.response)
-        if st.session_state.nutrient_names or st.session_state.nutrient_values:
+        if st.session_state.nutrient_names and st.session_state.nutrient_values:
             st.plotly_chart(fig,use_container_width=True)
         else:
             pass
