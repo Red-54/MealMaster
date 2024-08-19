@@ -25,6 +25,7 @@ st.session_state.nutrient_names = []
 st.session_state.nutrient_values = []
 if "show" not in st.session_state:
     st.session_state.show = False
+st.session_state.username = ''
 
 
 def get_gemini_response(prompt):
