@@ -33,12 +33,23 @@ def app():
                 st.session_state.allergies = allergy[0].split(", ")
             
             print(st.session_state.allergies)
-            perfer = st.multiselect(
-                "What are your Dietary Preferences?",pf.cuisine+pf.diet+pf.fruits+pf.dairy+pf.grains+pf.protein+pf.flavours,default=st.session_state.preferences
+            if st.session_state.preferences == '':
+                perfer = st.multiselect(
+                "What are your Dietary Preferences?",pf.cuisine+pf.diet+pf.fruits+pf.dairy+pf.grains+pf.protein+pf.flavours
             )
-            allegries = st.multiselect(
-                "Do you have any Allergies?",pf.allegries,default=st.session_state.allergies
+            else: 
+                perfer = st.multiselect(
+                    "What are your Dietary Preferences?",pf.cuisine+pf.diet+pf.fruits+pf.dairy+pf.grains+pf.protein+pf.flavours,default=st.session_state.preferences
+                )
+            
+            if st.session_state.allergies == '':
+                allegries = st.multiselect(
+                "Do you have any Allergies?",pf.allegries
             )
+            else:
+                allegries = st.multiselect(
+                    "Do you have any Allergies?",pf.allegries,default=st.session_state.allergies
+                )
             
         if st.button("Save"):
             ps = ", ".join(perfer)
