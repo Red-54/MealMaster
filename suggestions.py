@@ -1,7 +1,5 @@
 from plotly.graph_objs import XAxis
 import streamlit as st
-from dotenv import load_dotenv
-load_dotenv()
 import os
 import google.generativeai as genai
 import streamlit as st
@@ -17,7 +15,7 @@ engine = create_engine(
     pool_pre_ping=True,
 )
 
-genai.configure(api_key= os.getenv("GOOGLE_API_KEY"))
+genai.configure(api_key= st.secrets['GOOGLE_API_KEY'])
 st.session_state.preferences = ''
 st.session_state.allergies = ''
 st.session_state.response = ''
