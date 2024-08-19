@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 import json
 st.session_state.preferences = ''
 st.session_state.allergies = ''
+st.session_state.response = ''
 engine = create_engine(
     "sqlite:///meals_db",
     pool_size = 5,
@@ -22,26 +23,61 @@ engine = create_engine(
 genai.configure(api_key= os.getenv("GOOGLE_API_KEY"))
 
 def get_gemini_response(prompt):
-    model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content([prompt])
-    return response.text
+    try:
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content([prompt])
+        return response.text
+    except ValueError:
+        get_gemini_response(prompt)
 
 def get_ingredients(img):
-    temp_dir = tempfile.mkdtemp()
-    path = os.path.join(temp_dir,img.name)
-    with open(path,"wb") as f:
-        f.write(img.getvalue())
-    ind = genai.upload_file(path=path)
-    model = genai.GenerativeModel(model_name="gemini-1.5-pro")
-    response = model.generate_content([ind,"Just give list of food ingredients in given file."])
-    return response.text
+    try:
+        temp_dir = tempfile.mkdtemp()
+        path = os.path.join(temp_dir,img.name)
+        with open(path,"wb") as f:
+            f.write(img.getvalue())
+        ind = genai.upload_file(path=path)
+        model = genai.GenerativeModel(model_name="gemini-1.5-pro")
+        response = model.generate_content([ind,"Just give list of food ingredients in given file."])
+        return response.text
+    except:
+        get_ingredients(img)
 
 def get_nutrients(response):
     model = genai.GenerativeModel('gemini-pro')
-    prompt = str("""Give the nutritional value of the above recipe in the format {"Calories": value, "Protein": value, "Fat": value, "Cholesterol": value, "Carbohydrates": value, "Fiber": value, "Sodium" : value} just give the key values pairs nothing else and Most important you must only give the output in json """)
-    nutrients = model.generate_content([prompt,response])
-    return nutrients.text
+    prompt = str("""Give the nutritional value of the above recipe in the format {"Calories": value, "Protein": value, "Fat": value, "Cholesterol": value, "Carbohydrates": value, "Fiber": value, "Sodium" : value} just give the key values pairs nothing else and Most important you must only give the output in json do not return empty dictionary json the json must contain some positive integer""")
+    try:
+        nutrients = model.generate_content([prompt,response])
+        return nutrients.text
+    except:
+        get_nutrients(response)
 
+def get_key_values(nutrient):
+    try:
+        nutri = json.loads(nutrient)
+        nutrient_names = list(nutri.keys())
+        nutrient_values = list(nutri.values())
+        return nutrient_names, nutrient_values
+    except:
+        get_key_values(nutrient)
+
+
+def get_recipe_title(response):
+    model = genai.GenerativeModel('gemini-pro')
+    prompt = "You just have to give title of the recipe nothing else just the title of the recipe"
+    try:
+        title = model.generate_content([prompt,response])
+        return title.text
+    except:
+        get_recipe_title(response)
+
+@st.cache_data 
+def update_history(response,username):
+    updated_history = get_recipe_title(response) + ", " + st.session_state.history
+
+    with engine.connect() as conn:
+        conn.execute(text(f'''UPDATE UserProfile SET history = "Beef Tacos, " WHERE username = "Red";'''))
+        conn.commit()
 
 
 def app():
@@ -50,7 +86,10 @@ def app():
         st.warning("You must Login First!")
         pass
     else:
+        response = ''
         username = st.session_state.username
+        fig = go.Figure(data=[go.Bar(x=[],y=[])])
+
         with engine.connect() as conn:
             p = conn.execute(text(f'''select count(*) from UserProfile where username = "{username}" and preferences is null;''')).scalar()
             if p:
@@ -60,6 +99,22 @@ def app():
                 st.session_state.preferences = pref[0].split(', ')
             print(st.session_state.preferences)
 
+            a = conn.execute(text(f'''select count(*) from UserProfile where username = "{username}"  and allergies is null;''')).scalar()
+            if a:
+                st.session_state.allergies = ''
+            else:
+                allerg = conn.execute(text(f'''select allergies from UserProfile where username = "{username}" ''')).fetchone()
+                st.session_state.allergies = allerg[0].split(', ')
+            print(st.session_state.allergies)
+
+            h = conn.execute(text(f''' select count(*) from UserProfile where username = "{username}" and history is null'''))
+
+            if h:
+                st.session_state.history = ''
+            else:
+                history = conn.execute(text(f''' select history from UserProfile where username = "{username}" ''')).fetchone()
+                st.session_state.history = history[0].split(', ')
+
         upload_img = st.file_uploader("You can upload image of Ingredients(optional)",type=['png','jpg'])
 
         if upload_img is not None:
@@ -67,23 +122,25 @@ def app():
         else:
             indgredients = ''
         if st.button("Recommend"):
+            
             prefer = f'''
             You should only respond in markdown
             You are greatest Meal Suggestioner
             based on the preferences : {st.session_state.preferences} and allergies : {st.session_state.allergies} and you should try to include the given indgredients which are : {indgredients} it is okay to use other ingredients required for the recipes if not given then use any required also it is not compulsory to use all the ingredients just the needed ones
             You suggest only one Recipe
+            also you can recommend based on past liked recipes : {st.session_state.history}
             for example if the preference is American and allergies are Peanut
             The response should be in markdown of Recipe of hamburger or any other American cuisine but any recipe should not contain any allergies mention as Peanut is mentioned the recipe for hamburger should not contain Peanut as Ingredient'''
             print(prefer)
             response = get_gemini_response(prefer)
+            st.session_state.response = response
             nutrient = get_nutrients(response)
-            nutrient = json.loads(nutrient)
-            nutrient_names = list(nutrient.keys())
-            nutrient_values = list(nutrient.values())
-
+            nutrient_names, nutrient_values = get_key_values(nutrient)         
             fig = go.Figure(data=[go.Bar(x=nutrient_names,y=nutrient_values)])
 
-            st.markdown(response)
-            st.plotly_chart(fig,use_container_width=True)
-
-        
+    if st.session_state.response is not None:
+        st.markdown(st.session_state.response)
+        st.plotly_chart(fig,use_container_width=True)
+        st.button(":heart:",on_click=update_history,args=[st.session_state.response,username])
+    else:
+        pass
