@@ -122,7 +122,7 @@ def app():
             prefer = f'''
             You should only respond in markdown
             You are greatest Meal Suggestioner
-            based on the preferences : {st.session_state.preferences} and allergies : {st.session_state.allergies} and you should try to include the given indgredients which are : {indgredients} it is okay to use other ingredients required for the recipes if not given then use any required also it is not compulsory to use all the ingredients just the needed ones
+            based on the preferences : {st.session_state.preferences} and allergies : {st.session_state.allergies} if there are no preferences then you can recommend any recipe and you should try to include the given indgredients which are : {indgredients} it is okay to use other ingredients required for the recipes if not given then use any required also it is not compulsory to use all the ingredients just the needed ones if no indgredients then you can use any ingredient required for the recipe
             You suggest only one Recipe
             also you can recommend based on past liked recipes : {st.session_state.history}
             for example if the preference is American and allergies are Peanut
