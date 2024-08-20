@@ -2,7 +2,7 @@ import streamlit as st
 import preferences as pf
 from sqlalchemy import text,create_engine
 
-
+st.set_option('client.showErrorDetails', False)
 engine = create_engine(
     "sqlite:///meals_db",
     pool_size = 5,
