@@ -136,18 +136,20 @@ def app():
             st.session_state.show = True
             nutrient = get_nutrients(response)
             st.session_state.nutrient_names, st.session_state.nutrient_values = get_key_values(nutrient)
-
-        if st.session_state.show:
-            st.markdown(st.session_state.response)
-            if st.session_state.nutrient_names and st.session_state.nutrient_values:
-                fig = go.Figure(data=[go.Bar(x=st.session_state.nutrient_names,y=st.session_state.nutrient_values)])
-                st.plotly_chart(fig,use_container_width=True)
+        try:
+            if st.session_state.show:
+                st.markdown(st.session_state.response)
+                if st.session_state.nutrient_names and st.session_state.nutrient_values:
+                    fig = go.Figure(data=[go.Bar(x=st.session_state.nutrient_names,y=st.session_state.nutrient_values)])
+                    st.plotly_chart(fig,use_container_width=True)
+                else:
+                    pass
+                if st.button(":heart:"):   
+                    updated_history = str(get_recipe_title(st.session_state.response)) + ", " + st.session_state.history
+                    with engine.connect() as conn:
+                        conn.execute(text(f'''UPDATE UserProfile SET history = "{updated_history}" WHERE username = "{username}";'''))
+                        conn.commit()
             else:
                 pass
-            if st.button(":heart:"):   
-                updated_history = str(get_recipe_title(st.session_state.response)) + ", " + st.session_state.history
-                with engine.connect() as conn:
-                    conn.execute(text(f'''UPDATE UserProfile SET history = "{updated_history}" WHERE username = "{username}";'''))
-                    conn.commit()
-        else:
+        except:
             pass
