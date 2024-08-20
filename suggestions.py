@@ -1,7 +1,5 @@
 from plotly.graph_objs import XAxis
 import streamlit as st
-from dotenv import load_dotenv
-load_dotenv()
 import os
 import google.generativeai as genai
 import streamlit as st
@@ -17,7 +15,7 @@ engine = create_engine(
     pool_pre_ping=True,
 )
 
-genai.configure(api_key= os.getenv("GOOGLE_API_KEY"))
+genai.configure(api_key= st.secrets['GOOGLE_API_KEY'])
 st.session_state.preferences = ''
 st.session_state.allergies = ''
 st.session_state.response = ''
@@ -135,11 +133,12 @@ def app():
             st.session_state.show = True
             nutrient = get_nutrients(response)
             st.session_state.nutrient_names, st.session_state.nutrient_values = get_key_values(nutrient)         
-    fig = go.Figure(data=[go.Bar(x=st.session_state.nutrient_names,y=st.session_state.nutrient_values)])
+   
 
     if st.session_state.show:
         st.markdown(st.session_state.response)
         if st.session_state.nutrient_names and st.session_state.nutrient_values:
+            fig = go.Figure(data=[go.Bar(x=st.session_state.nutrient_names,y=st.session_state.nutrient_values)])
             st.plotly_chart(fig,use_container_width=True)
         else:
             pass

@@ -7,7 +7,9 @@ st.set_page_config(
     page_title="Meal Master",
     initial_sidebar_state= "expanded",
 )
-
+st.session_state.nutrient_names = []
+st.session_state.nutrient_values = []
+st.session_state.show = False
 class MultiApp:
 
 
