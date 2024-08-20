@@ -24,7 +24,7 @@
 
 ## Setup and Installation 🚀
 
-1. **Clone the Repository:** `git clone [repository URL]`
+1. **Clone the Repository:** `git clone git@github.com:Red-54/MealMaster.git`
 2. **Install Dependencies:** `pip install -r requirements.txt`
 3. **Google Cloud API Key:**
     - Obtain a Google Cloud API Key 🔑 and enable the Gemini API.
