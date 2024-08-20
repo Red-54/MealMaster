@@ -1,6 +1,6 @@
 __pycache__/
 mealmaster-4bb1c-7c25349d7a5c.json
-.streamlit/
+.streamlit/secrets.toml
 meals_db
 test_sql_streamlit.py
 todo.txt
