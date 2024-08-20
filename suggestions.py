@@ -14,7 +14,7 @@ engine = create_engine(
     pool_recycle=3600,
     pool_pre_ping=True,
 )
-
+st.set_option('client.showErrorDetails', False)
 genai.configure(api_key= st.secrets['GOOGLE_API_KEY'])
 st.session_state.preferences = ''
 st.session_state.allergies = ''
@@ -27,54 +27,57 @@ st.session_state.username = ''
 
 
 def get_gemini_response(prompt):
-    try:
-        model = genai.GenerativeModel('gemini-pro')
-        response = model.generate_content([prompt])
-        return response.text
-    except ValueError:
-        get_gemini_response(prompt)
+    while True:
+        try:
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content([prompt])
+            return response.text
+        except ValueError:
+            get_gemini_response(prompt)
 
 def get_ingredients(img):
-    try:
-        temp_dir = tempfile.mkdtemp()
-        path = os.path.join(temp_dir,img.name)
-        with open(path,"wb") as f:
-            f.write(img.getvalue())
-        ind = genai.upload_file(path=path)
-        model = genai.GenerativeModel(model_name="gemini-1.5-pro")
-        response = model.generate_content([ind,"Just give list of food ingredients in given file."])
-        return response.text
-    except:
-        get_ingredients(img)
+    while True:
+        try:
+            temp_dir = tempfile.mkdtemp()
+            path = os.path.join(temp_dir,img.name)
+            with open(path,"wb") as f:
+                f.write(img.getvalue())
+            ind = genai.upload_file(path=path)
+            model = genai.GenerativeModel(model_name="gemini-1.5-pro")
+            response = model.generate_content([ind,"Just give list of food ingredients in given file."])
+            return response.text
+        except:
+            continue
 
 def get_nutrients(response):
     model = genai.GenerativeModel('gemini-pro')
     prompt = str("""Give the nutritional value of the above recipe in the format {"Calories": value, "Protein": value, "Fat": value, "Cholesterol": value, "Carbohydrates": value, "Fiber": value, "Sodium" : value} just give the key values pairs nothing else and Most important you must only give the output in json do not return empty dictionary json the json must contain some positive integer""")
-    try:
-        nutrients = model.generate_content([prompt,response])
-        return nutrients.text
-    except:
-        get_nutrients(response)
+    while True:
+        try:
+            nutrients = model.generate_content([prompt,response])
+            return nutrients.text
+        except:
+            continue
 
 def get_key_values(nutrient):
-    try:
-        nutri = json.loads(nutrient)
-        nutrient_names = list(nutri.keys())
-        nutrient_values = list(nutri.values())
-        return nutrient_names, nutrient_values
-    except:
-        get_key_values(nutrient)
-
+    while True:
+        try:
+            nutri = json.loads(nutrient)
+            nutrient_names = list(nutri.keys())
+            nutrient_values = list(nutri.values())
+            return nutrient_names, nutrient_values
+        except:
+            continue
 
 def get_recipe_title(response):
     model = genai.GenerativeModel('gemini-pro')
     prompt = "You just have to give title of the recipe nothing else just the title of the recipe"
-    try:
-        title = model.generate_content([prompt,response])
-        return title.text
-    except:
-        get_recipe_title(response)
-
+    while True:
+        try:
+            title = model.generate_content([prompt,response])
+            return title.text
+        except:
+            continue
 
 def app():
     username = st.session_state.username
